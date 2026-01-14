@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Income{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Income</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="">Income</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    My Income
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'add-income'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Income
+    </a>
+</div>
+
+{% include 'partials/_messages.html' %}
+
+{% if income.count %}
+
+<!-- Summary Cards -->
+<div class="summary-cards fade-in">
+    <div class="summary-card">
+        <div class="summary-icon success">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Income</div>
+            <div class="summary-value">{{currency}} {% widthratio income.count 1 income.count|default:"0" %}</div>
+            <div class="summary-trend">This month</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon accent">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Top Source</div>
+            <div class="summary-value">Salary</div>
+            <div class="summary-trend">Primary income</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon primary">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Average Monthly</div>
+            <div class="summary-value">{{currency}} 0</div>
+            <div class="summary-trend">Last 6 months</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-section fade-in">
+    <input type="text" class="filter-input" id="searchField" placeholder="🔍 Search income...">
+    <select class="filter-select">
+        <option>All Sources</option>
+        <option>Salary</option>
+        <option>Freelance</option>
+        <option>Investment</option>
+        <option>Business</option>
+        <option>Other</option>
+    </select>
+    <select class="filter-select">
+        <option>All Time</option>
+        <option>Today</option>
+        <option>This Week</option>
+        <option>This Month</option>
+        <option>This Year</option>
+    </select>
+    <button class="btn-secondary-modern">
+        <i class="fas fa-filter"></i> More Filters
+    </button>
+</div>
+
+<!-- Table Container -->
+<div class="table-container fade-in">
+    <div class="app-table">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>
+                        Amount ({{currency}}) 
+                        <a href="?sort=amount_asc" title="Sort ascending">↑</a> 
+                        <a href="?sort=amount_desc" title="Sort descending">↓</a>
+                    </th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>
+                        Date 
+                        <a href="?sort=date_asc" title="Sort ascending">↑</a>
+                        <a href="?sort=date_desc" title="Sort descending">↓</a>
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for income_item in page_obj %}
+                <tr>
+                    <td><strong>{{income_item.amount}}</strong></td>
+                    <td>
+                        <span class="category-tag {{income_item.source|lower}}">
+                            {{income_item.source}}
+                        </span>
+                    </td>
+                    <td>{{income_item.description}}</td>
+                    <td>{{income_item.date|date:"M d, Y"}}</td>
+                    <td>
+                        <a href="{% url 'income-edit' income_item.id %}" class="btn-icon-modern" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="no-results" style="display: none; text-align: center; padding: 40px; color: var(--text-gray);">
+        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        No results found
+    </p>
+
+    <div class="table-output" style="display: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Amount ({{currency}})</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+        <div>
+            Showing page {{page_obj.number}} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if sort_order %}&sort={{ sort_order }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if sort_order %}&sort={{ sort_order }}{% endif %}">
+                    <i class="fas fa-angle-left"></i> Previous
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{page_obj.number}}</span>
+            </li>
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if sort_order %}&sort={{ sort_order }}{% endif %}">
+                    Next <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if sort_order %}&sort={{ sort_order }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+{% else %}
+<div class="modern-card" style="margin: 0 32px; text-align: center; padding: 60px;">
+    <i class="fas fa-dollar-sign" style="font-size: 64px; color: var(--text-light); margin-bottom: 24px;"></i>
+    <h3 style="color: var(--text-dark); margin-bottom: 12px;">No income recorded yet</h3>
+    <p style="color: var(--text-gray); margin-bottom: 24px;">Start tracking your income by adding your first entry!</p>
+    <a href="{% url 'add-income'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Your First Income
+    </a>
+</div>
+{% endif %}
+
+<!-- Floating Action Button -->
+<button class="fab" onclick="window.location.href='{% url 'add-income'%}'" title="Add Income">
+    <i class="fas fa-plus"></i>
+</button>
+
+<script src="{% static 'js/searchIncome.js' %}"></script>
+
+{% endblock content %}

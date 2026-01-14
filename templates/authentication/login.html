@@ -1,0 +1,59 @@
+{% extends 'base_auth.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="auth-logo-icon">💰</div>
+            <h1>ExpenseWise</h1>
+            <p>Smart Expense Tracking Made Simple</p>
+        </div>
+        
+        <h2 class="auth-title">Welcome Back</h2>
+        
+        <form action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            
+            {% include 'partials/_messages.html' %}
+            
+            <div class="form-group">
+                <label for="usernameField">Username</label>
+                <input type="text" 
+                       name="username" 
+                       placeholder="Enter your username" 
+                       id="usernameField"
+                       value="{{fieldValues.username}}" 
+                       class="form-control" 
+                       required />
+            </div>
+            
+            <div class="form-group password-toggle">
+                <label for="passwordField">Password</label>
+                <input type="password" 
+                       name="password" 
+                       placeholder="Enter your password"
+                       class="form-control" 
+                       id="passwordField" 
+                       required />
+                <small class="showPasswordToggle">SHOW</small>
+            </div>
+            
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+            <p><a href="{% url 'landing' %}"><i class="fas fa-home"></i> Back to Home</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/register.js' %}"></script>
+
+{% endblock content %}

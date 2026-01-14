@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Financial Reports</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">
+                    Reports
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+{% include 'partials/_messages.html' %}
+
+<!-- Report Generation Card -->
+<div class="modern-card fade-in" style="margin: 0 32px 24px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-chart-bar"></i> Generate Report
+        </h3>
+    </div>
+    
+    <form method="post" action="{% url 'generate-report' %}">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; align-items: end; margin-bottom: 24px;">
+            <div class="form-group">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                    <i class="fas fa-calendar"></i> Start Date
+                </label>
+                <input type="date" 
+                       name="start_date" 
+                       class="form-control"
+                       value="{{start_date}}"
+                       required
+                       style="padding: 12px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                    <i class="fas fa-calendar"></i> End Date
+                </label>
+                <input type="date" 
+                       name="end_date" 
+                       class="form-control"
+                       value="{{end_date}}"
+                       required
+                       style="padding: 12px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                    <i class="fas fa-filter"></i> Report Type
+                </label>
+                <select name="report_type" 
+                        class="form-control"
+                        style="padding: 12px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; background: white;">
+                    <option value="summary">Summary Report</option>
+                    <option value="detailed">Detailed Report</option>
+                    <option value="category">Category Breakdown</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-primary-modern">
+                <i class="fas fa-chart-line"></i> Generate Report
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if report_generated %}
+<!-- Report Results -->
+<div class="modern-card fade-in" style="margin: 0 32px 24px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-file-alt"></i> Report Results
+        </h3>
+        <div style="display: flex; gap: 12px;">
+            <a href="{% url 'export_pdf' %}" class="btn-secondary-modern">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+            <a href="{% url 'export_csv' %}" class="btn-secondary-modern">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{% url 'export_xlsx' %}" class="btn-secondary-modern">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(75, 63, 255, 0.1), rgba(107, 95, 255, 0.05)); border-radius: var(--radius-md);">
+            <i class="fas fa-arrow-down" style="font-size: 24px; color: #dc3545; margin-bottom: 8px;"></i>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-dark);">{{currency}} {{total_expenses|floatformat:2}}</div>
+            <div style="font-size: 12px; color: var(--text-gray);">Total Expenses</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05)); border-radius: var(--radius-md);">
+            <i class="fas fa-arrow-up" style="font-size: 24px; color: #28a745; margin-bottom: 8px;"></i>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-dark);">{{currency}} {{total_income|floatformat:2}}</div>
+            <div style="font-size: 12px; color: var(--text-gray);">Total Income</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(255, 184, 77, 0.1), rgba(255, 159, 26, 0.05)); border-radius: var(--radius-md);">
+            <i class="fas fa-balance-scale" style="font-size: 24px; color: var(--accent-color); margin-bottom: 8px;"></i>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-dark);">{{currency}} {{net_balance|floatformat:2}}</div>
+            <div style="font-size: 12px; color: var(--text-gray);">Net Balance</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(108, 117, 125, 0.05)); border-radius: var(--radius-md);">
+            <i class="fas fa-percentage" style="font-size: 24px; color: var(--text-gray); margin-bottom: 8px;"></i>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-dark);">{{savings_rate|floatformat:1}}%</div>
+            <div style="font-size: 12px; color: var(--text-gray);">Savings Rate</div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+        <div style="background: white; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--border-color);">
+            <h4 style="margin-bottom: 16px; color: var(--text-dark); font-size: 16px;">
+                <i class="fas fa-chart-pie"></i> Expense Categories
+            </h4>
+            <canvas id="expenseCategoryChart" width="300" height="200"></canvas>
+        </div>
+        
+        <div style="background: white; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--border-color);">
+            <h4 style="margin-bottom: 16px; color: var(--text-dark); font-size: 16px;">
+                <i class="fas fa-chart-line"></i> Monthly Trend
+            </h4>
+            <canvas id="monthlyTrendChart" width="300" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Detailed Tables -->
+    {% if expenses %}
+    <div style="margin-bottom: 32px;">
+        <h4 style="margin-bottom: 16px; color: var(--text-dark); font-size: 18px;">
+            <i class="fas fa-list"></i> Expense Details
+        </h4>
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{expense.date|date:"M d, Y"}}</td>
+                        <td>{{expense.description}}</td>
+                        <td>
+                            <span class="category-tag {{expense.category|lower}}">
+                                {{expense.category}}
+                            </span>
+                        </td>
+                        <td><strong>{{currency}} {{expense.amount}}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if income %}
+    <div>
+        <h4 style="margin-bottom: 16px; color: var(--text-dark); font-size: 18px;">
+            <i class="fas fa-dollar-sign"></i> Income Details
+        </h4>
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Source</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for income_item in income %}
+                    <tr>
+                        <td>{{income_item.date|date:"M d, Y"}}</td>
+                        <td>{{income_item.description}}</td>
+                        <td>
+                            <span class="category-tag {{income_item.source|lower}}">
+                                {{income_item.source}}
+                            </span>
+                        </td>
+                        <td><strong>{{currency}} {{income_item.amount}}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Quick Report Templates -->
+<div class="modern-card fade-in" style="margin: 0 32px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-bolt"></i> Quick Reports
+        </h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div style="padding: 20px; border: 2px solid var(--border-color); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="generateQuickReport('this_month')">
+            <i class="fas fa-calendar-month" style="font-size: 32px; color: var(--primary-color); margin-bottom: 12px;"></i>
+            <h4 style="margin-bottom: 8px; color: var(--text-dark);">This Month</h4>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;">Current month summary</p>
+        </div>
+        
+        <div style="padding: 20px; border: 2px solid var(--border-color); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="generateQuickReport('last_month')">
+            <i class="fas fa-calendar-alt" style="font-size: 32px; color: var(--accent-color); margin-bottom: 12px;"></i>
+            <h4 style="margin-bottom: 8px; color: var(--text-dark);">Last Month</h4>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;">Previous month analysis</p>
+        </div>
+        
+        <div style="padding: 20px; border: 2px solid var(--border-color); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="generateQuickReport('quarterly')">
+            <i class="fas fa-chart-bar" style="font-size: 32px; color: var(--success-color); margin-bottom: 12px;"></i>
+            <h4 style="margin-bottom: 8px; color: var(--text-dark);">Quarterly</h4>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;">Last 3 months overview</p>
+        </div>
+        
+        <div style="padding: 20px; border: 2px solid var(--border-color); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="generateQuickReport('yearly')">
+            <i class="fas fa-calendar" style="font-size: 32px; color: var(--text-gray); margin-bottom: 12px;"></i>
+            <h4 style="margin-bottom: 8px; color: var(--text-dark);">Yearly</h4>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;">Annual financial summary</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(75, 63, 255, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr 1fr auto"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Hover effects for quick report cards */
+div[onclick*="generateQuickReport"]:hover {
+    border-color: var(--primary-color) !important;
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+</style>
+
+<script>
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    if (!document.querySelector('input[name="start_date"]').value) {
+        document.querySelector('input[name="start_date"]').value = firstDay.toISOString().split('T')[0];
+    }
+    if (!document.querySelector('input[name="end_date"]').value) {
+        document.querySelector('input[name="end_date"]').value = today.toISOString().split('T')[0];
+    }
+});
+
+function generateQuickReport(period) {
+    const today = new Date();
+    let startDate, endDate;
+    
+    switch(period) {
+        case 'this_month':
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            endDate = today;
+            break;
+        case 'last_month':
+            startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+        case 'quarterly':
+            startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+            endDate = today;
+            break;
+        case 'yearly':
+            startDate = new Date(today.getFullYear(), 0, 1);
+            endDate = today;
+            break;
+    }
+    
+    document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
+    document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
+    document.querySelector('form').submit();
+}
+
+{% if report_generated %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts if report is generated - Using real database data
+    const expenseCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+    const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+
+    // Process expense data by category from the report
+    const categoryData = {};
+    {% for expense in expenses %}
+        const category = '{{expense.category}}';
+        const amount = parseFloat('{{expense.amount}}');
+        if (categoryData[category]) {
+            categoryData[category] += amount;
+        } else {
+            categoryData[category] = amount;
+        }
+    {% endfor %}
+
+    const categoryLabels = Object.keys(categoryData);
+    const categoryAmounts = Object.values(categoryData);
+
+    // Expense Category Chart - Real data
+    new Chart(expenseCtx, {
+        type: 'doughnut',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                data: categoryAmounts,
+                backgroundColor: ['#4B3FFF', '#FFB84D', '#28a745', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#6c757d'],
+                borderWidth: 0,
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { 
+                        padding: 15, 
+                        usePointStyle: true, 
+                        font: { size: 11 } 
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+
+    // Process monthly data from the report period
+    const monthlyExpenseData = {};
+    const monthlyIncomeData = {};
+
+    {% for expense in expenses %}
+        const expenseMonth = new Date('{{expense.date}}').toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        const expenseAmount = parseFloat('{{expense.amount}}');
+        if (monthlyExpenseData[expenseMonth]) {
+            monthlyExpenseData[expenseMonth] += expenseAmount;
+        } else {
+            monthlyExpenseData[expenseMonth] = expenseAmount;
+        }
+    {% endfor %}
+
+    {% for income_item in income %}
+        const incomeMonth = new Date('{{income_item.date}}').toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        const incomeAmount = parseFloat('{{income_item.amount}}');
+        if (monthlyIncomeData[incomeMonth]) {
+            monthlyIncomeData[incomeMonth] += incomeAmount;
+        } else {
+            monthlyIncomeData[incomeMonth] = incomeAmount;
+        }
+    {% endfor %}
+
+    // Get all unique months and sort them
+    const allMonths = [...new Set([...Object.keys(monthlyExpenseData), ...Object.keys(monthlyIncomeData)])].sort();
+    const expenseValues = allMonths.map(month => monthlyExpenseData[month] || 0);
+    const incomeValues = allMonths.map(month => monthlyIncomeData[month] || 0);
+
+    // Monthly Trend Chart - Real data
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: allMonths.length > 0 ? allMonths : ['No Data'],
+            datasets: [{
+                label: 'Expenses',
+                data: expenseValues.length > 0 ? expenseValues : [0],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#dc3545',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }, {
+                label: 'Income',
+                data: incomeValues.length > 0 ? incomeValues : [0],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#28a745',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '{{currency}}' + Math.round(value);
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+{% endblock content %}

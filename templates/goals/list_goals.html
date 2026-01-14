@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Goals{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Goals</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">
+                    Goals
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'add_goal'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Goal
+    </a>
+</div>
+
+{% include 'partials/_messages.html' %}
+
+{% if goals.count %}
+
+<!-- Summary Cards -->
+<div class="summary-cards fade-in">
+    <div class="summary-card">
+        <div class="summary-icon primary">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Goals</div>
+            <div class="summary-value">{{goals.count}}</div>
+            <div class="summary-trend">Active goals</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Completed</div>
+            <div class="summary-value">0</div>
+            <div class="summary-trend">This year</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon accent">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Progress</div>
+            <div class="summary-value">65%</div>
+            <div class="summary-trend">Average</div>
+        </div>
+    </div>
+</div>
+
+<!-- Goals Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; margin: 0 32px;">
+    {% for goal in goals %}
+    <div class="modern-card fade-in" style="margin: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+                <h3 style="color: var(--text-dark); margin-bottom: 8px; font-size: 18px;">
+                    <i class="fas fa-bullseye" style="color: var(--primary-color); margin-right: 8px;"></i>
+                    {{goal.name}}
+                </h3>
+                <p style="color: var(--text-gray); margin-bottom: 0; font-size: 14px;">
+                    Target: {{currency|default:"$"}} {{goal.amount_to_save|floatformat:2}}
+                </p>
+            </div>
+            <div class="dropdown" style="position: relative;">
+                <button class="btn-icon-modern" onclick="toggleDropdown({{goal.id}})" style="background: var(--bg-light);">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div id="dropdown-{{goal.id}}" style="display: none; position: absolute; right: 0; top: 100%; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); min-width: 120px; z-index: 10;">
+                    <a href="#" onclick="editGoal({{goal.id}})" style="display: block; padding: 10px 16px; color: var(--text-dark); text-decoration: none; font-size: 14px;">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_goal' goal.id %}" style="display: block; padding: 10px 16px; color: #dc3545; text-decoration: none; font-size: 14px;" onclick="return confirm('Delete this goal?')">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 14px; color: var(--text-gray);">Progress</span>
+                <span style="font-size: 14px; font-weight: 600; color: var(--text-dark);">
+                    {{currency|default:"$"}} {{goal.current_saved_amount|floatformat:2}} / {{currency|default:"$"}} {{goal.amount_to_save|floatformat:2}}
+                </span>
+            </div>
+            <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                <div style="width: {% widthratio goal.current_saved_amount goal.amount_to_save 100 %}%; height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--primary-light)); transition: width 0.3s ease;"></div>
+            </div>
+            <div style="text-align: center; margin-top: 8px;">
+                <span style="font-size: 18px; font-weight: 700; color: var(--primary-color);">
+                    {% widthratio goal.current_saved_amount goal.amount_to_save 100 %}%
+                </span>
+            </div>
+        </div>
+        
+        {% if goal.description %}
+        <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 16px; line-height: 1.5;">
+            {{goal.description}}
+        </p>
+        {% endif %}
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 12px; color: var(--text-gray);">
+                <i class="fas fa-calendar"></i> {{goal.start_date|date:"M d, Y"}} - {{goal.end_date|date:"M d, Y"}}
+            </div>
+            <div style="display: flex; gap: 8px;">
+                {% if goal.current_saved_amount < goal.amount_to_save %}
+                <button class="btn-secondary-modern" style="padding: 6px 12px; font-size: 12px;" onclick="addProgress({{goal.id}})">
+                    <i class="fas fa-plus"></i> Add Progress
+                </button>
+                {% else %}
+                <span style="color: var(--success-color); font-size: 12px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Completed!
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="modern-card" style="margin: 0 32px; text-align: center; padding: 60px;">
+    <i class="fas fa-bullseye" style="font-size: 64px; color: var(--text-light); margin-bottom: 24px;"></i>
+    <h3 style="color: var(--text-dark); margin-bottom: 12px;">No goals set yet</h3>
+    <p style="color: var(--text-gray); margin-bottom: 24px;">Start achieving your financial dreams by setting your first goal!</p>
+    <a href="{% url 'add_goal'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Set Your First Goal
+    </a>
+</div>
+{% endif %}
+
+<!-- Floating Action Button -->
+<button class="fab" onclick="window.location.href='{% url 'add_goal'%}'" title="Add Goal">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Add Progress Modal -->
+<div id="progressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: var(--radius-lg); max-width: 400px; width: 90%;">
+        <h3 style="margin-bottom: 16px; color: var(--text-dark);">Add Progress</h3>
+        <form id="progressForm" method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Amount</label>
+                <input type="number" id="progressAmount" name="amount" step="0.01" required style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-md);">
+            </div>
+            <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                <button type="button" onclick="closeProgressModal()" class="btn-secondary-modern">Cancel</button>
+                <button type="submit" class="btn-primary-modern">Add Progress</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr))"] {
+        grid-template-columns: 1fr !important;
+        margin: 0 16px !important;
+    }
+}
+</style>
+
+<script>
+function toggleDropdown(goalId) {
+    const dropdown = document.getElementById('dropdown-' + goalId);
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function addProgress(goalId) {
+    document.getElementById('progressModal').style.display = 'flex';
+    document.getElementById('progressForm').action = '/goals/add_amount/' + goalId + '/';
+}
+
+function editGoal(goalId) {
+    // For now, just show an alert. You can implement edit functionality later
+    alert('Edit functionality coming soon! Goal ID: ' + goalId);
+}
+
+function closeProgressModal() {
+    document.getElementById('progressModal').style.display = 'none';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+    }
+});
+</script>
+
+{% endblock content %}

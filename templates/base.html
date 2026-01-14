@@ -1,0 +1,179 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <title>ExpenseWise</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{%static 'css/style.css' %}">
+    {% block link %}
+
+    {% endblock link %}
+    <title>ExpenseWise | {% block title %} {% endblock %}</title>
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet" />
+    <link href="{% static 'css/main.css'%}" rel="stylesheet" />
+    <link href="{% static 'css/modern-dashboard.css' %}" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+    {% block css %}
+
+    {% endblock css %}
+
+    <style>
+        /* Override old styles for modern design */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Ensure old sidebar styles don't conflict */
+        #sidebar .p-4 {
+            padding: 1.5rem !important;
+        }
+        
+        /* Fix any Bootstrap conflicts */
+        .nav-link {
+            padding: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <nav id="sidebar">
+            <div class="custom-menu">
+                <button type="button" id="sidebarCollapse">
+                    <i class="fa fa-bars"></i>
+                    <span class="sr-only">Toggle Menu</span>
+                </button>
+            </div>
+            <div class="p-4">
+                <a href="/" class="logo">ExpenseWise</a>
+                <ul class="list-unstyled components mb-5">
+                    <h6 class="sidebar-heading">
+                        Dashboard
+                    </h6>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'home' %}active{% endif %}">
+                        <a href="/">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'expenses' or 'expense' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{%url 'expenses'%}">
+                            <i class="fas fa-wallet"></i> Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'income' or 'income' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{%url 'income'%}">
+                            <i class="fas fa-dollar-sign"></i> Income
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">
+                        <a href="{%url 'forecast'%}">
+                            <i class="fas fa-crystal-ball"></i> Forecast
+                        </a>
+                    </li>
+
+                    <h6 class="sidebar-heading">
+                        Analytics
+                    </h6>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
+                        <a href="{%url 'stats'%}">
+                            <i class="fas fa-chart-pie"></i> Expense Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'income-summary' %}active{% endif %}">
+                        <a href="{%url 'income-summary'%}">
+                            <i class="fas fa-chart-bar"></i> Income Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+                        <a href="{%url 'report'%}">
+                            <i class="fas fa-file-chart-line"></i> Reports
+                        </a>
+                    </li>
+
+                    <h6 class="sidebar-heading">
+                        Planning
+                    </h6>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'list_goals' or 'goal' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{%url 'list_goals'%}">
+                            <i class="fas fa-bullseye"></i> Goals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" onclick="showComingSoon('Budget Planning')">
+                            <i class="fas fa-calculator"></i> Budget Planning
+                        </a>
+                    </li>
+
+                    <h6 class="sidebar-heading">
+                        Settings
+                    </h6>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'preferences' %}active{% endif %}">
+                        <a href="{%url 'preferences'%}">
+                            <i class="fas fa-sliders-h"></i> Preferences
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'account' %}active{% endif %}">
+                        <a href="{%url 'account' %}">
+                            <i class="fas fa-user-circle"></i> Account
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="content">
+            {% include "navbar.html" %}
+            <div class="container-fluid">
+                {% block content %} {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{%static 'js/jquery.min.js' %}"></script>
+    <script src="{%static 'js/popper.js' %}"></script>
+    <script src="{%static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{%static 'js/main2.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script>
+        window.jQuery ||
+            document.write(
+                '<script src="/docs/4.4/static/js/vendor/jquery.slim.min.js"><\/script>'
+            );
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/modern-dashboard.js' %}"></script>
+    <script>
+        // Coming soon functionality
+        function showComingSoon(feature) {
+            if (typeof showToast === 'function') {
+                showToast(feature + ' is coming soon!', 'info');
+            } else {
+                alert(feature + ' is coming soon!');
+            }
+        }
+        
+        {% block js %}
+
+        {% endblock js %}
+    </script>
+</body>
+
+</html>

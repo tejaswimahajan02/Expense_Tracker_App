@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Income{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Income</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'income' %}">Income</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Add Income
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'income' %}" class="btn-secondary-modern">
+        <i class="fas fa-list"></i> My Income
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="modern-card fade-in" style="margin: 0 32px; max-width: 600px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-plus-circle"></i> New Income
+        </h3>
+    </div>
+
+    <form action="{% url 'add-income' %}" method="post">
+        {% csrf_token %}
+        {% include 'partials/_messages.html' %}
+        
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="amount" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-dollar-sign"></i> Amount
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   name="amount" 
+                   id="amount"
+                   value="{{values.amount}}" 
+                   placeholder="Enter amount"
+                   step="0.01"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="description" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-edit"></i> Description
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   name="description"
+                   id="description"
+                   value="{{values.description}}" 
+                   placeholder="What is this income for?"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="source" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-tags"></i> Source
+            </label>
+            <select class="form-control" 
+                    name="source"
+                    id="source"
+                    required
+                    style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease; background: white;">
+                <option value="">Select income source</option>
+                {% if values.source %}
+                <option selected value="{{values.source}}">{{values.source}}</option>
+                {% endif %}
+                {% for source in sources %}
+                <option value="{{source.name}}">{{source.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 32px;">
+            <label for="income_date" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-calendar"></i> Date
+            </label>
+            <input type="date" 
+                   class="form-control" 
+                   name="income_date"
+                   id="income_date"
+                   value="{{values.income_date}}" 
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: flex-end;">
+            <a href="{% url 'income' %}" class="btn-secondary-modern">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn-primary-modern">
+                <i class="fas fa-save"></i> Save Income
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(75, 63, 255, 0.1) !important;
+}
+</style>
+
+<script>
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('income_date').value = today;
+});
+</script>
+
+{% endblock content %}

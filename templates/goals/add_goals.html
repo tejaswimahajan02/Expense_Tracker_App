@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Goal{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Goal</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'list_goals' %}">Goals</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Add Goal
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'list_goals' %}" class="btn-secondary-modern">
+        <i class="fas fa-list"></i> My Goals
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="modern-card fade-in" style="margin: 0 32px; max-width: 600px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-plus-circle"></i> New Goal
+        </h3>
+    </div>
+
+    <form action="{% url 'add_goal' %}" method="post">
+        {% csrf_token %}
+        {% include 'partials/_messages.html' %}
+        
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="name" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-bullseye"></i> Goal Name
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   name="name" 
+                   id="name"
+                   value="{{form.name.value|default:''}}" 
+                   placeholder="What's your goal?"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="target_amount" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-dollar-sign"></i> Target Amount
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   name="target_amount"
+                   id="target_amount"
+                   value="{{form.target_amount.value|default:''}}" 
+                   placeholder="How much do you want to save?"
+                   step="0.01"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="description" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-edit"></i> Description (Optional)
+            </label>
+            <textarea class="form-control" 
+                      name="description"
+                      id="description"
+                      rows="4"
+                      placeholder="Describe your goal and why it's important to you..."
+                      style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease; resize: vertical;">{{form.description.value|default:''}}</textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 32px;">
+            <label for="target_date" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-calendar"></i> Target Date (Optional)
+            </label>
+            <input type="date" 
+                   class="form-control" 
+                   name="target_date"
+                   id="target_date"
+                   value="{{form.target_date.value|default:''}}" 
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: flex-end;">
+            <a href="{% url 'list_goals' %}" class="btn-secondary-modern">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn-primary-modern">
+                <i class="fas fa-save"></i> Create Goal
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Goal Tips -->
+<div class="modern-card fade-in" style="margin: 24px 32px 0;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-lightbulb"></i> Goal Setting Tips
+        </h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div style="padding: 16px; background: linear-gradient(135deg, rgba(75, 63, 255, 0.1), rgba(107, 95, 255, 0.05)); border-radius: var(--radius-md); border-left: 4px solid var(--primary-color);">
+            <h4 style="margin: 0 0 8px; color: var(--primary-color); font-size: 14px; font-weight: 600;">
+                <i class="fas fa-target"></i> Be Specific
+            </h4>
+            <p style="margin: 0; color: var(--text-dark); font-size: 13px; line-height: 1.4;">
+                Set clear, measurable goals. Instead of "save money," try "save $5,000 for vacation."
+            </p>
+        </div>
+        
+        <div style="padding: 16px; background: linear-gradient(135deg, rgba(255, 184, 77, 0.1), rgba(255, 159, 26, 0.05)); border-radius: var(--radius-md); border-left: 4px solid var(--accent-color);">
+            <h4 style="margin: 0 0 8px; color: var(--accent-color); font-size: 14px; font-weight: 600;">
+                <i class="fas fa-clock"></i> Set Deadlines
+            </h4>
+            <p style="margin: 0; color: var(--text-dark); font-size: 13px; line-height: 1.4;">
+                Having a target date creates urgency and helps you stay motivated to reach your goal.
+            </p>
+        </div>
+        
+        <div style="padding: 16px; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05)); border-radius: var(--radius-md); border-left: 4px solid var(--success-color);">
+            <h4 style="margin: 0 0 8px; color: var(--success-color); font-size: 14px; font-weight: 600;">
+                <i class="fas fa-chart-line"></i> Track Progress
+            </h4>
+            <p style="margin: 0; color: var(--text-dark); font-size: 13px; line-height: 1.4;">
+                Regularly update your progress to stay motivated and adjust your strategy if needed.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(75, 63, 255, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+    .modern-card {
+        margin: 0 16px 24px !important;
+    }
+}
+</style>
+
+{% endblock content %}

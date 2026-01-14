@@ -1,0 +1,73 @@
+{% extends 'base_auth.html' %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="auth-logo-icon">💰</div>
+            <h1>ExpenseWise</h1>
+            <p>Smart Expense Tracking Made Simple</p>
+        </div>
+        
+        <h2 class="auth-title">Create Account</h2>
+        
+        <form action="{% url 'register' %}" method="POST">
+            {% csrf_token %}
+            
+            {% include 'partials/_messages.html' %}
+            
+            <div class="form-group">
+                <label for="usernameField">Username</label>
+                <input type="text" 
+                       name="username" 
+                       placeholder="Choose a username" 
+                       id="usernameField"
+                       value="{{fieldValues.username}}" 
+                       class="form-control" 
+                       required />
+                <div class="invalid_feedback invalid-feedback" style="display:none"></div>
+                <p class="usernameSuccessOutput"></p>
+            </div>
+            
+            <div class="form-group">
+                <label for="emailField">Email</label>
+                <input type="email" 
+                       name="email" 
+                       placeholder="Enter your email" 
+                       class="form-control"
+                       id="emailField" 
+                       value="{{fieldValues.email}}" 
+                       required />
+                <div class="emailFeedBackArea invalid-feedback" style="display:none"></div>
+            </div>
+            
+            <div class="form-group password-toggle">
+                <label for="passwordField">Password</label>
+                <input type="password" 
+                       name="password" 
+                       placeholder="Create a strong password"
+                       class="form-control" 
+                       id="passwordField" 
+                       required />
+                <small class="showPasswordToggle">SHOW</small>
+            </div>
+            
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+            <p><a href="{% url 'landing' %}"><i class="fas fa-home"></i> Back to Home</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/register.js' %}"></script>
+
+{% endblock content %}

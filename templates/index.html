@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">
+                    Dashboard
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'add-expenses'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Expense
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards fade-in">
+    <div class="summary-card">
+        <div class="summary-icon primary">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Expenses</div>
+            <div class="summary-value">{{currency|default:"$"}} {{total_expenses|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">This month</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon accent">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Income</div>
+            <div class="summary-value">{{currency|default:"$"}} {{total_income|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">This month</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon success">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Net Balance</div>
+            <div class="summary-value">{{currency|default:"$"}} {{net_balance|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">Current</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="modern-card fade-in" style="margin: 0 32px 24px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">Quick Actions</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <a href="{% url 'add-expenses'%}" class="btn-primary-modern" style="text-decoration: none;">
+            <i class="fas fa-plus"></i> Add Expense
+        </a>
+        <a href="{% url 'add-income'%}" class="btn-secondary-modern" style="text-decoration: none;">
+            <i class="fas fa-plus"></i> Add Income
+        </a>
+        <a href="{% url 'stats'%}" class="btn-secondary-modern" style="text-decoration: none;">
+            <i class="fas fa-chart-pie"></i> View Reports
+        </a>
+        <a href="{% url 'list_goals'%}" class="btn-secondary-modern" style="text-decoration: none;">
+            <i class="fas fa-bullseye"></i> Manage Goals
+        </a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="modern-card fade-in" style="margin: 0 32px 24px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">Recent Activity</h3>
+        <a href="{% url 'expenses'%}" class="btn-secondary-modern">View All</a>
+    </div>
+    
+    {% if recent_expenses or recent_income %}
+    <div style="max-height: 300px; overflow-y: auto;">
+        {% for expense in recent_expenses %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #dc3545; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-minus"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">{{expense.description}}</h4>
+                    <p style="margin: 0; font-size: 12px; color: var(--text-gray);">{{expense.category}} • {{expense.date|date:"M d, Y"}}</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 14px; font-weight: 700; color: #dc3545;">-{{currency|default:"$"}} {{expense.amount}}</div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% for income in recent_income %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #28a745; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">{{income.description}}</h4>
+                    <p style="margin: 0; font-size: 12px; color: var(--text-gray);">{{income.source}} • {{income.date|date:"M d, Y"}}</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 14px; font-weight: 700; color: #28a745;">+{{currency|default:"$"}} {{income.amount}}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: var(--text-gray);">
+        <i class="fas fa-history" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <p>No recent activity</p>
+        <p style="font-size: 14px;">Start by adding your first expense or income</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

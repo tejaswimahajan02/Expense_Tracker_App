@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Expense{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Expense</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'expenses' %}">Expenses</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Add Expense
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'expenses' %}" class="btn-secondary-modern">
+        <i class="fas fa-list"></i> My Expenses
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="modern-card fade-in" style="margin: 0 32px; max-width: 600px;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-plus-circle"></i> New Expense
+        </h3>
+    </div>
+
+    <form action="{% url 'add-expenses' %}" method="post" id="expense-form">
+        {% csrf_token %}
+        {% include 'partials/_messages.html' %}
+        
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="amount" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-dollar-sign"></i> Amount
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   name="amount" 
+                   id="amount"
+                   value="{{values.amount}}" 
+                   placeholder="Enter amount"
+                   step="0.01"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="description" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-edit"></i> Description
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   name="description"
+                   id="description-input"
+                   value="{{values.description}}" 
+                   placeholder="What did you spend on?"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+            
+            <!-- Loading indicator -->
+            <div id="loading-indicator" style="display: none; margin-top: 8px;">
+                <i class="fas fa-spinner fa-spin"></i> Predicting category...
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="category" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-tags"></i> Category
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   name="category"
+                   id="category-input"
+                   value="{{values.category}}" 
+                   placeholder="Category will be predicted..."
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+            
+            <input type="hidden" name="initial_predicted_category" id="initial-predicted-category" value="{{predicted_category}}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 32px;">
+            <label for="expense_date" style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
+                <i class="fas fa-calendar"></i> Date of Expense
+            </label>
+            <input type="date" 
+                   class="form-control" 
+                   name="expense_date"
+                   id="expense_date"
+                   required
+                   style="padding: 14px 16px; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; transition: all 0.3s ease;" />
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: flex-end;">
+            <a href="{% url 'expenses' %}" class="btn-secondary-modern">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" id="btn" class="btn-primary-modern">
+                <i class="fas fa-save"></i> Save Expense
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(75, 63, 255, 0.1) !important;
+}
+</style>
+
+{% endblock content %}
+
+{% block js %}
+// Function to predict category based on description
+function predictCategory() {
+    const description = document.getElementById('description-input').value;
+    if (description) {
+        // Display the loading indicator
+        document.getElementById('loading-indicator').style.display = 'block';
+
+        // Send a request to your server to predict the category
+        const formData = new FormData();
+        formData.append('description', description);
+        fetch('{% url "predict-category" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide the loading indicator
+            document.getElementById('loading-indicator').style.display = 'none';
+
+            // Update the category input with the predicted category
+            const categoryInput = document.getElementById('category-input');
+            setTimeout(() => {
+                categoryInput.value = data.predicted_category;
+                categoryInput.style.color = "black";
+            }, 1000);
+            categoryInput.value = "Predicting Category....";
+            categoryInput.style.color = "green";
+        })
+        .catch(error => {
+            console.error('Error predicting category:', error);
+            // Hide the loading indicator in case of an error
+            document.getElementById('loading-indicator').style.display = 'none';
+        });
+    }
+}
+
+// Function to get the CSRF token from cookies
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// Listen for input changes in the description field
+const descriptionInput = document.getElementById('description-input');
+if (descriptionInput) {
+    descriptionInput.addEventListener('input', predictCategory);
+}
+
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('expense_date').value = today;
+});
+{% endblock js %}

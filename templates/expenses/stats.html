@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expense Summary{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Expense Summary</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'expenses' %}">Expenses</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Summary
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'add-expenses'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Expense
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards fade-in">
+    <div class="summary-card">
+        <div class="summary-icon primary">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Expenses</div>
+            <div class="summary-value">{{currency|default:"$"}} {{total_expenses|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">All time</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon accent">
+            <i class="fas fa-calendar-month"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">This Month</div>
+            <div class="summary-value">{{currency|default:"$"}} {{monthly_total|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">Current month</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon success">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Average Daily</div>
+            <div class="summary-value">{{currency|default:"$"}} {{daily_average|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">Last 30 days</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0 32px 24px;">
+    <!-- Category Chart -->
+    <div class="modern-card fade-in">
+        <div class="card-header-modern">
+            <h3 class="card-title-modern">
+                <i class="fas fa-chart-pie"></i> Expenses by Category
+            </h3>
+        </div>
+        <div style="position: relative; height: 300px;">
+            <canvas id="myChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Monthly Trend Chart -->
+    <div class="modern-card fade-in">
+        <div class="card-header-modern">
+            <h3 class="card-title-modern">
+                <i class="fas fa-chart-line"></i> Monthly Trend
+            </h3>
+        </div>
+        <div style="position: relative; height: 300px;">
+            <canvas id="monthlyChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown Table -->
+<div class="table-container fade-in">
+    <div class="card-header-modern" style="padding: 24px 24px 0;">
+        <h3 class="card-title-modern">
+            <i class="fas fa-list"></i> Category Breakdown
+        </h3>
+    </div>
+    
+    {% if category_data %}
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Percentage</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category, amount in category_data %}
+            <tr>
+                <td>
+                    <span class="category-tag {{category|lower}}">
+                        {{category}}
+                    </span>
+                </td>
+                <td><strong>{{currency}} {{amount|floatformat:2}}</strong></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 60px; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                            <div style="width: {% widthratio amount total_expenses 100 %}%; height: 100%; background: var(--primary-color);"></div>
+                        </div>
+                        {% widthratio amount total_expenses 100 %}%
+                    </div>
+                </td>
+                <td>{{category_counts|default:"0"}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: var(--text-gray);">
+        <i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <h3 style="color: var(--text-dark); margin-bottom: 12px;">No expense data</h3>
+        <p style="margin-bottom: 24px;">Add some expenses to see your spending breakdown</p>
+        <a href="{% url 'add-expenses'%}" class="btn-primary-modern">
+            <i class="fas fa-plus"></i> Add Your First Expense
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Responsive Grid Fix -->
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+// Chart.js configuration
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+
+    // Category Pie Chart - Using real database data
+    const categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for category, amount in category_data %}'{{category}}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for category, amount in category_data %}{{amount}}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [
+                    '#4B3FFF',
+                    '#FFB84D',
+                    '#28a745',
+                    '#dc3545',
+                    '#6f42c1',
+                    '#fd7e14',
+                    '#20c997',
+                    '#6c757d'
+                ],
+                borderWidth: 0,
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+
+    // Monthly Trend Line Chart - Fetch real data from API
+    fetch('/monthly-expense-data/')
+        .then(response => response.json())
+        .then(data => {
+            // Get monthly expense data for the last 6 months
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentMonth = new Date().getMonth();
+            
+            // Show last 6 months including current month
+            const months = [];
+            const monthlyData = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthIndex = (currentMonth - i + 12) % 12;
+                months.push(monthNames[monthIndex]);
+                monthlyData.push(data.monthly_expense_data[monthIndex] || 0);
+            }
+            
+            const monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Monthly Expenses',
+                        data: monthlyData,
+                        borderColor: '#4B3FFF',
+                        backgroundColor: 'rgba(75, 63, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#4B3FFF',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{currency}}' + Math.round(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching expense data:', error);
+            // Fallback chart with placeholder data
+            const monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Monthly Expenses',
+                        data: [0, 0, 0, 0, 0, 0],
+                        borderColor: '#4B3FFF',
+                        backgroundColor: 'rgba(75, 63, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock extra_js %}

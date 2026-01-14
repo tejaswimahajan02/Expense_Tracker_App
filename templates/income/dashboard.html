@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Income Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Income Dashboard</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'income' %}">Income</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Dashboard
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'add-income'%}" class="btn-primary-modern">
+        <i class="fas fa-plus"></i> Add Income
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards fade-in">
+    <div class="summary-card">
+        <div class="summary-icon success">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Total Income</div>
+            <div class="summary-value">{{currency}} {{total_income|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">All time</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon accent">
+            <i class="fas fa-calendar-month"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">This Month</div>
+            <div class="summary-value">{{currency}} {{monthly_income|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">Current month</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon primary">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-content">
+            <div class="summary-label">Average Monthly</div>
+            <div class="summary-value">{{currency}} {{average_monthly|floatformat:2|default:"0.00"}}</div>
+            <div class="summary-trend">Last 6 months</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0 32px 24px;">
+    <!-- Income Sources Chart -->
+    <div class="modern-card fade-in">
+        <div class="card-header-modern">
+            <h3 class="card-title-modern">
+                <i class="fas fa-chart-pie"></i> Income by Source
+            </h3>
+        </div>
+        <div style="position: relative; height: 300px;">
+            <canvas id="incomeSourceChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Monthly Income Trend -->
+    <div class="modern-card fade-in">
+        <div class="card-header-modern">
+            <h3 class="card-title-modern">
+                <i class="fas fa-chart-line"></i> Monthly Trend
+            </h3>
+        </div>
+        <div style="position: relative; height: 300px;">
+            <canvas id="monthlyIncomeChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Income Sources Breakdown -->
+<div class="table-container fade-in">
+    <div class="card-header-modern" style="padding: 24px 24px 0;">
+        <h3 class="card-title-modern">
+            <i class="fas fa-list"></i> Income Sources Breakdown
+        </h3>
+    </div>
+    
+    {% if source_data %}
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Amount</th>
+                <th>Percentage</th>
+                <th>Count</th>
+                <th>Last Entry</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source_item in source_data %}
+            <tr>
+                <td>
+                    <span class="category-tag {{source_item.source|lower}}">
+                        {{source_item.source}}
+                    </span>
+                </td>
+                <td><strong>{{currency}} {{source_item.amount|floatformat:2}}</strong></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 60px; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                            <div style="width: {% widthratio source_item.amount total_income 100 %}%; height: 100%; background: var(--success-color);"></div>
+                        </div>
+                        {% widthratio source_item.amount total_income 100 %}%
+                    </div>
+                </td>
+                <td>{{source_item.count}}</td>
+                <td>{{source_item.last_date|date:"M d, Y"}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: var(--text-gray);">
+        <i class="fas fa-dollar-sign" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <h3 style="color: var(--text-dark); margin-bottom: 12px;">No income data</h3>
+        <p style="margin-bottom: 24px;">Add some income entries to see your income breakdown</p>
+        <a href="{% url 'add-income'%}" class="btn-primary-modern">
+            <i class="fas fa-plus"></i> Add Your First Income
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Income -->
+<div class="modern-card fade-in" style="margin: 24px 32px 0;">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-clock"></i> Recent Income
+        </h3>
+        <a href="{% url 'income' %}" class="btn-secondary-modern">View All</a>
+    </div>
+    
+    {% if recent_income %}
+    <div style="space-y: 12px;">
+        {% for income_item in recent_income %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--success-color); display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">{{income_item.description}}</h4>
+                    <p style="margin: 0; font-size: 12px; color: var(--text-gray);">{{income_item.source}} • {{income_item.date|date:"M d, Y"}}</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 16px; font-weight: 700; color: var(--success-color);">+{{currency}} {{income_item.amount}}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: var(--text-gray);">
+        <i class="fas fa-history" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <p>No recent income entries</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Income Source Pie Chart - Using real database data
+    const incomeSourceCtx = document.getElementById('incomeSourceChart').getContext('2d');
+    const monthlyIncomeCtx = document.getElementById('monthlyIncomeChart').getContext('2d');
+
+    const incomeSourceChart = new Chart(incomeSourceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for source in source_data %}'{{source.source}}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for source in source_data %}{{source.amount}}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [
+                    '#28a745',
+                    '#4B3FFF',
+                    '#FFB84D',
+                    '#dc3545',
+                    '#6f42c1',
+                    '#fd7e14',
+                    '#20c997'
+                ],
+                borderWidth: 0,
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+
+    // Monthly Income Trend - Fetch real data from API
+    fetch('/monthly-income-data/')
+        .then(response => response.json())
+        .then(data => {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentMonth = new Date().getMonth();
+            
+            // Show last 6 months including current month
+            const labels = [];
+            const chartData = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthIndex = (currentMonth - i + 12) % 12;
+                labels.push(monthNames[monthIndex]);
+                chartData.push(data.monthly_income_data[monthIndex] || 0);
+            }
+            
+            const monthlyIncomeChart = new Chart(monthlyIncomeCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Income',
+                        data: chartData,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#28a745',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{currency}}' + Math.round(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching monthly income data:', error);
+            // Fallback chart with placeholder data
+            const monthlyIncomeChart = new Chart(monthlyIncomeCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Monthly Income',
+                        data: [0, 0, 0, 0, 0, 0],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock extra_js %}
